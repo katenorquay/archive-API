@@ -1,5 +1,4 @@
 function iterateTimeStamps(starttimestamp, stoptimestamp, frequency) {
-  console.log('hit timestamps!')
   var timestampsArray = []
     for (var i = Number(starttimestamp); i <= stoptimestamp; i++) {
       timestampsArray.push(i)

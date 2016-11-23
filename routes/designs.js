@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var designDB = require('../db/data')
 var unirest = require('unirest')
+// var makeObject = require('./makeObject')
 
 //Gets all the designs
 router.get('/', function(req, res) {
@@ -45,13 +46,19 @@ router.get('/url/:websiteURL', function(req, res) {
 //   logic.getPostInfo(req, res)
 // })
 
-
-
+// var postThis = [ { image_url: 'http://i.imgur.com/hNiKI9F.jpg',
+//     page_url: 'facebook.com',
+//     year: '2000',
+//     timestamp: '20000915172800' },
+//   { image_url: 'http://i.imgur.com/8DPUJ4R.jpg',
+//     page_url: 'facebook.com',
+//     year: '2001',
+//     timestamp: '20010517235729' } ]
+//
 // router.post('/', function(req, res){
-//   foodDB.addDesigns(req.body)
-//     .then(function(designInfo){
-//       console.log(designInfo);
-//       res.json({designInfo}).status(201)
+//     designDB.addNewDesign()
+//     .then(function(){
+//       res.json({}).status(201)
 //     })
 //     .catch(function(err){
 //       res.status(404)

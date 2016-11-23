@@ -3,17 +3,20 @@ var knexConfig = require('../knexfile')[process.env.NODE_ENV || 'development']
 var knex = Knex(knexConfig)
 
 function getDesigns() {
-  return knex('designs')
+  return knex('designInfo')
 }
 
 function filterByYear(year) {
-  return knex('designs').where('timestamp', year)
+  return knex('designInfo').where('year', year)
 }
 
 function filterByName(websiteName) {
-  return knex('designs').where('title', websiteName )
+  return knex('designInfo').where('page_url', websiteName )
 }
 
+function addNewDesign(){
+  return knex('designInfo').insert()
+}
 
 //Get Designs by the year in the db. Where year === to the year that was sent in the get request by the user.
 

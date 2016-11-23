@@ -4,8 +4,11 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
 var unirest = require('unirest')
+var Urlbox = require('urlbox')
+const urlbox = Urlbox("bb37accb-ed39-4cbf-a531-f0645a4db833", "eb75d5a4-05b9-401f-91f5-d951d7b0fa89")
 
-var timestamps = require('./functions/timestamps')
+var makeObject = require('./makeObject')
+var timestamps = require('./timestamps')
 var routes = require('./routes/index');
 var designs = require('./routes/designs');
 
@@ -19,12 +22,12 @@ app.use(cookieParser());
 app.use('/api/v1/designs', designs);
 
 getPostInfo({ body: { submitted_url: 'facebook.com',
-  year: [ '2000', '2001' ],
+  year: [ '2002', '2003' ],
   frequency: 'yearly',
   commit: 'Enter' }}, undefined)
 
 function getPostInfo(req, res) {
-  console.log('hit getPostInfo!')
+  console.log('PostInfo!')
   var submittedUrl = req.body.submitted_url
   var startPoint = req.body.year[0]
   var endPoint = req.body.year[1]
@@ -33,7 +36,7 @@ function getPostInfo(req, res) {
 }
 
 function prepUrls(submittedUrl, groupedTimeStamps) {
-  console.log('hit prepUrls!')
+  console.log('prepUrls')
   var generatedUrls = []
   for (var i = 0; i < groupedTimeStamps.length; i++) {
     generatedUrls.push('http://archive.org/wayback/available?url=' + submittedUrl + '&timestamp=' + groupedTimeStamps[i])
@@ -42,7 +45,7 @@ function prepUrls(submittedUrl, groupedTimeStamps) {
 }
 
 function callWaybackAPI(submittedUrl, generatedUrls) {
-  console.log('hit waybackAPI!')
+  console.log('callWaybackAPI')
   waybackUrls = []
   waybackTimeStamps = []
   slowDownLoop()
@@ -74,51 +77,56 @@ function callWaybackAPI(submittedUrl, generatedUrls) {
 }
 
 function callScreenshotAPI(submittedUrl, waybackUrls, waybackTimeStamps) {
+  console.log('screenshotAPI')
   var screenshotUrls = []
-  slowDownLoop()
-  function slowDownLoop() {
-    for (var i = 0; i <= waybackUrls.length; i++) {
-      (function(i) {
-        setTimeout(function() {
-          unirest.get("https://thumbnail-thumbnail-v1.p.mashape.com/get?delay=2500&format=PNG&fullpage=true&url=http%3A%2F%2Fwww.twitter.com%2F&width=500")
-          .header("X-Mashape-Key", "nhps9N9YQwmshJlQiNPupJjz1iCEp1KfDERjsn2SNzWt4sAoVG")
-          .end(function (result) {
-            console.log(result.status, result.headers, result.body);
-});
-          }, i * 5000)
-      }(i))
+    for (var i = 0; i <= waybackUrls.length - 1; i++) {
+          var options = {
+            url: waybackUrls[i],
+            thumb_width: 600,
+            format: 'jpg',
+            quality: 100
+          };
+          const imgUrl = urlbox.buildUrl(options)
+          if (screenshotUrls.length < waybackUrls.length) {
+            screenshotUrls.push(imgUrl)
+          }
     }
-  }
-collectAllData(submittedUrl, savedtimeStamps, screenshotUrls)
+    callImgurAPI(submittedUrl, waybackTimeStamps, screenshotUrls)
 }
 
+function callImgurAPI(submittedUrl, waybackTimeStamps, screenshotUrls) {
+  console.log('Made it to imgur!')
+  var realUrls = []
+  for (var i = 0; i <= screenshotUrls.length - 1; i++) {
+    unirest.post('https://imgur-apiv3.p.mashape.com/3/image')
+    .header("X-Mashape-Key", process.env.IMGUR_KEY)
+    .header("Authorization", "Client-ID process.env.IMGUR_CLIENT_ID")
+    .attach("image", screenshotUrls[i])
+    .end(function (result) {
+      var realUrl = result.body.data.link
+      if (realUrls.length < screenshotUrls.length) {
+        realUrls.push(realUrl)
+        if(realUrls.length === screenshotUrls.length) {
+          collectAllData(submittedUrl, waybackTimeStamps, realUrls)
+        }
+      }
+    });
+  }
+}
 
-function collectAllData(submittedUrl, waybackTimeStamps, screenshotUrls) {
+function collectAllData(submittedUrl, waybackTimeStamps, realUrls) {
   grabbedYears = []
-  for (var i = 0; i < savedtimeStamps.length; i++) {
-    grabbedYears.push(savedtimeStamps[i].slice(0, 4))
+  for (var i = 0; i < waybackTimeStamps.length; i++) {
+    grabbedYears.push(waybackTimeStamps[i].slice(0, 4))
   }
-  makeObject(submittedUrl, waybackTimeStamps, grabbedYears, screenshotUrls)
+  makeObject(submittedUrl, waybackTimeStamps, grabbedYears, realUrls)
 }
 
-//This works for getting one
 
-function makeObject(submittedUrl, waybackTimeStamps, grabbedYears, screenshotUrls) {
-  var objectArray = []
-  for (var i = 0; i < savedtimeStamps.length; i++) {
-    var newObj = {
-    "image_url": screenshotUrls[i],
-    "page_url": submittedUrl,
-    "year": grabbedYears[i],
-    "timestamp": waybackTimeStamps[i]
-    };
-    objectArray.push(newObj)
-  }
-  console.log(objectArray)
-}
-
-// each time the for loop goes round, I want to create a new object
-
+//Questions
+//How to put the object i've created into a database. Will this work?
+//How to get post info to the rest of the code
+//deploying
 
 
 module.exports = app;
