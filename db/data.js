@@ -6,12 +6,12 @@ function getDesigns() {
   return knex('designInfo')
 }
 
-function filterByYear(year) {
+function getDesignsByYear(year) {
   return knex('designInfo').where('year', year)
 }
 
-function filterByName(websiteName) {
-  return knex('designInfo').where('page_url', websiteName )
+function getDesignsByUrl(url) {
+  return knex('designInfo').where('page_url', url)
 }
 
 function addNewDesign(){
@@ -25,6 +25,6 @@ function addNewDesign(){
 // }
 module.exports = {
   getDesigns: getDesigns,
-  filterByYear: filterByYear,
-  filterByName: filterByName
+  getDesignsByYear: getDesignsByYear,
+  getDesignsByUrl: getDesignsByUrl
 }
