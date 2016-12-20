@@ -1,6 +1,6 @@
 var unirest = require('unirest')
 
-const practiceStamps = [200950615, 20100615, 20110615]
+const practiceStamps = [20100615, 20110615]
 
 prepUrls('imgur.com', practiceStamps, waybackAPI)
 
@@ -10,7 +10,7 @@ function prepUrls (url, practiceStamps, waybackAPI) {
   generatedUrls.push('http://archive.org/wayback/available?url=' + url + '&timestamp=' + stamp)
   })
   console.log(generatedUrls)
-  waybackAPI(url, generatedUrls)
+  waybackAPI(url, generatedUrls, screenshotAPI)
 }
 
 function waybackAPI(url, generatedUrls, screenshotAPI) {
@@ -34,7 +34,7 @@ function waybackAPI(url, generatedUrls, screenshotAPI) {
                 waybackTimeStamps.push(saveTimeStamp)
                 if (waybackUrls.length === generatedUrls.length) {
                   console.log(waybackUrls, waybackTimeStamps)
-                  // screenshotAPI(url, waybackUrls, waybackTimeStamps, imgurAPI)
+                  screenshotAPI(url, waybackUrls, waybackTimeStamps, imgurAPI)
               }
             })
         }, i * 5000)
@@ -43,53 +43,64 @@ function waybackAPI(url, generatedUrls, screenshotAPI) {
   }
 }
 
-// function screenshotAPI(url, waybackUrls, waybackTimeStamps, imgurAPI) {
-  //   console.log('screenshotAPI')
-  //   var screenshotUrls = []
-  //   slowDownLoop()
-  //   function slowDownLoop() {
-  //     for (var i = 0; i <= waybackUrls.length - 1; i++) {
-  //       (function (i) {
-  //         setTimeout(function() {
-  //           unirest.get('http://api.screenshotmachine.com/?key=26717d&size=N&format=JPG&hash=&cacheLimit=1&timeout=400&url=' + waybackUrls[i])
-  //           .end(function (result) {
-  //             console.log(result.body)
-  //           })
-  //           // screenshotUrls.push(imgUrl)
-  //           // if(screenshotUrls.length === waybackUrls.length) {
-  //           //   console.log(screenshotUrls)
-  //           //   imgurAPI()
-  //           // }
-  //         }, i * 5000)
-  //       }(i))
-  //     }
-  //
-  //   }
-  // }
+function screenshotAPI(url, waybackUrls, waybackTimeStamps, imgurAPI) {
+    console.log('screenshotAPI')
+    var screenshotUrls = []
+    slowDownLoop()
+    function slowDownLoop() {
+      for (var i = 0; i <= waybackUrls.length - 1; i++) {
+        (function (i) {
+          setTimeout(function() {
+            unirest.get("https://browshot.p.mashape.com/screenshot/create?key=pJRxC3T5uZVPhNxLiicMJV7Sn8Rz6zg8&size=screen&url=" + waybackUrls[i])
+            .header("X-Mashape-Key", "jck1cRFtf9mshwM3hisuUlxrbfvFp1KPMMpjsnBCYT96FUecP6")
+            .header("Accept", "application/json")
+            .end(function (result, error) {
+              if(error) console.log(error)
+              var screenshot_url = result.body.screenshot_url
+              screenshotUrls.push(screenshot_url)
+              if (screenshotUrls.length === waybackUrls.length) {
+                console.log(screenshotUrls)
+              }
+            })
+          }, i * 5000)
+        }(i))
+      }
+
+    }
+  }
 
 
 function imgurAPI() {
-  console.log('imgure with nothing yet')
+  console.log('imgur with nothing yet')
 }
 
-// function callScreenshotAPI(submittedUrl, waybackUrls, waybackTimeStamps) {
-//   console.log('screenshotAPI')
-//   var screenshotUrls = []
-//     for (var i = 0; i <= waybackUrls.length - 1; i++) {
-//           var options = {
-//             url: waybackUrls[i],
-//             thumb_width: 600,
-//             format: 'jpg',
-//             quality: 100
-//           };
-//           const imgUrl = urlbox.buildUrl(options)
-//           if (screenshotUrls.length < waybackUrls.length) {
-//             screenshotUrls.push(imgUrl)
-//           }
-//     }
-//     callImgurAPI(submittedUrl, waybackTimeStamps, screenshotUrls)
+// function collectAllData(submittedUrl, waybackTimeStamps, realUrls) {
+//   grabbedYears = []
+//   for (var i = 0; i < waybackTimeStamps.length; i++) {
+//     grabbedYears.push(waybackTimeStamps[i].slice(0, 4))
+//   }
+//   makeObject(submittedUrl, waybackTimeStamps, grabbedYears, realUrls)
+// }
+
+// function makeObject(submittedUrl, waybackTimeStamps, grabbedYears, realUrls) {
+//   var objectArray = []
+//   for (var i = 0; i < waybackTimeStamps.length; i++) {
+//     var newObj = {
+//     "image_url": realUrls[i],
+//     "page_url": submittedUrl,
+//     "year": grabbedYears[i],
+//     "timestamp": waybackTimeStamps[i]
+//     };
+//     objectArray.push(newObj)
+//   }
+//   console.log(objectArray)
+//   return objectArray
 // }
 //
+// module.exports = makeObject
+//
+//
+
 // function callImgurAPI(submittedUrl, waybackTimeStamps, screenshotUrls) {
 //   console.log('Made it to imgur!')
 //   var realUrls = []
@@ -110,10 +121,3 @@ function imgurAPI() {
 //   }
 // }
 //
-// function collectAllData(submittedUrl, waybackTimeStamps, realUrls) {
-//   grabbedYears = []
-//   for (var i = 0; i < waybackTimeStamps.length; i++) {
-//     grabbedYears.push(waybackTimeStamps[i].slice(0, 4))
-//   }
-//   makeObject(submittedUrl, waybackTimeStamps, grabbedYears, realUrls)
-// }
