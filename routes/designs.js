@@ -2,6 +2,9 @@ var express = require('express');
 var router = express.Router();
 var designDB = require('../db/data')
 var unirest = require('unirest')
+var apiCalls = require('../apiCalls')
+
+const timestamps = [19960615, 19970615, 19980615, 19990615, 20000615, 20010615, 20020615, 20030615, 20040615, 20050615, 20060615, 20070615, 20080615, 20090615, 20100615, 20110615, 20120615, 20130615, 20140615, 20150615, 20160615]
 
 //Gets all the designs
 router.get('/', (req, res) => {
@@ -38,7 +41,7 @@ router.post('/', (req, res) => {
     if (pageName.length !== 0){
       res.json({pageName})
     } else {
-
+      // apiCalls.prepUrls(url, timestamps, apiCalls.waybackAPI)
     }
   })
 })
