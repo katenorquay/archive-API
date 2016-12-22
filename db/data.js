@@ -14,8 +14,8 @@ function getDesignsByUrl(url) {
   return knex('designInfo').where('page_url', url)
 }
 
-function addNewDesign(){
-  return knex('designInfo').insert()
+function addNewDesign(designObj){
+  return knex('designInfo').returning('id').insert(designObj)
 }
 
 //Get Designs by the year in the db. Where year === to the year that was sent in the get request by the user.
@@ -26,5 +26,6 @@ function addNewDesign(){
 module.exports = {
   getDesigns: getDesigns,
   getDesignsByYear: getDesignsByYear,
-  getDesignsByUrl: getDesignsByUrl
+  getDesignsByUrl: getDesignsByUrl,
+  addNewDesign: addNewDesign
 }

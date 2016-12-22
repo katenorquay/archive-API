@@ -1,16 +1,11 @@
 var unirest = require('unirest')
 
-const practiceStamps = [20100615, 20110615]
-
-prepUrls('imgur.com', practiceStamps, waybackAPI)
-
 function prepUrls (url, practiceStamps, waybackAPI) {
   var generatedUrls = []
   practiceStamps.map(function (stamp) {
   generatedUrls.push('http://archive.org/wayback/available?url=' + url + '&timestamp=' + stamp)
   })
-  console.log(generatedUrls)
-  waybackAPI(url, generatedUrls, screenshotAPI)
+  return waybackAPI(url, generatedUrls, screenshotAPI)
 }
 
 function waybackAPI(url, generatedUrls, screenshotAPI) {
@@ -33,8 +28,7 @@ function waybackAPI(url, generatedUrls, screenshotAPI) {
                 waybackUrls.push(saveUrl)
                 waybackTimeStamps.push(saveTimeStamp)
                 if (waybackUrls.length === generatedUrls.length) {
-                  console.log(waybackUrls, waybackTimeStamps)
-                  screenshotAPI(url, waybackUrls, waybackTimeStamps, imgurAPI)
+                return screenshotAPI(url, waybackUrls, waybackTimeStamps, sliceYears)
               }
             })
         }, i * 5000)
@@ -43,8 +37,7 @@ function waybackAPI(url, generatedUrls, screenshotAPI) {
   }
 }
 
-function screenshotAPI(url, waybackUrls, waybackTimeStamps, imgurAPI) {
-    console.log('screenshotAPI')
+function screenshotAPI(url, waybackUrls, waybackTimeStamps, sliceYears) {
     var screenshotUrls = []
     slowDownLoop()
     function slowDownLoop() {
@@ -59,7 +52,7 @@ function screenshotAPI(url, waybackUrls, waybackTimeStamps, imgurAPI) {
               var screenshot_url = result.body.screenshot_url
               screenshotUrls.push(screenshot_url)
               if (screenshotUrls.length === waybackUrls.length) {
-                console.log(screenshotUrls)
+               return sliceYears(url, waybackTimeStamps, screenshotUrls, makeDbObject)
               }
             })
           }, i * 5000)
@@ -69,55 +62,33 @@ function screenshotAPI(url, waybackUrls, waybackTimeStamps, imgurAPI) {
     }
   }
 
-
-function imgurAPI() {
-  console.log('imgur with nothing yet')
+function sliceYears(url, waybackTimeStamps, screenshotUrls, makeDbObject) {
+  var years = []
+  waybackTimeStamps.map(function (stamp) {
+    years.push(stamp.slice(0, 4))
+  })
+  return makeDbObject(url, waybackTimeStamps, screenshotUrls, years)
 }
 
-// function collectAllData(submittedUrl, waybackTimeStamps, realUrls) {
-//   grabbedYears = []
-//   for (var i = 0; i < waybackTimeStamps.length; i++) {
-//     grabbedYears.push(waybackTimeStamps[i].slice(0, 4))
-//   }
-//   makeObject(submittedUrl, waybackTimeStamps, grabbedYears, realUrls)
-// }
+function makeDbObject(url, waybackTimeStamps, screenshotUrls, years) {
+  var designObjects = []
+  for (var i = 0; i < years.length; i++) {
+    var designObj = {
+      image_url: screenshotUrls[i],
+      page_url: url,
+      year: years[i],
+      timestamp: waybackTimeStamps[i]
+    }
+    designObjects.push(designObj)
+  }
+  console.log('this is the normal object', designObjects)
+  return designObj
+}
 
-// function makeObject(submittedUrl, waybackTimeStamps, grabbedYears, realUrls) {
-//   var objectArray = []
-//   for (var i = 0; i < waybackTimeStamps.length; i++) {
-//     var newObj = {
-//     "image_url": realUrls[i],
-//     "page_url": submittedUrl,
-//     "year": grabbedYears[i],
-//     "timestamp": waybackTimeStamps[i]
-//     };
-//     objectArray.push(newObj)
-//   }
-//   console.log(objectArray)
-//   return objectArray
-// }
-//
-// module.exports = makeObject
-//
-//
-
-// function callImgurAPI(submittedUrl, waybackTimeStamps, screenshotUrls) {
-//   console.log('Made it to imgur!')
-//   var realUrls = []
-//   for (var i = 0; i <= screenshotUrls.length - 1; i++) {
-//     unirest.post('https://imgur-apiv3.p.mashape.com/3/image')
-//     .header("X-Mashape-Key", process.env.IMGUR_KEY)
-//     .header("Authorization", "Client-ID process.env.IMGUR_CLIENT_ID")
-//     .attach("image", screenshotUrls[i])
-//     .end(function (result) {
-//       var realUrl = result.body.data.link
-//       if (realUrls.length < screenshotUrls.length) {
-//         realUrls.push(realUrl)
-//         if(realUrls.length === screenshotUrls.length) {
-//           collectAllData(submittedUrl, waybackTimeStamps, realUrls)
-//         }
-//       }
-//     });
-//   }
-// }
-//
+module.exports = {
+  prepUrls: prepUrls,
+  waybackAPI: waybackAPI,
+  screenshotAPI: screenshotAPI,
+  sliceYears: sliceYears,
+  makeDbObject: makeDbObject
+}

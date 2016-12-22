@@ -4,8 +4,6 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
 
-var makeObject = require('./makeObject')
-var timestamps = require('./timestamps')
 var routes = require('./routes/index');
 var designs = require('./routes/designs');
 
