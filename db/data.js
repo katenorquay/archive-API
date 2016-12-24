@@ -15,18 +15,17 @@ function getDesignsByUrl(url) {
 }
 
 function addNewDesign(designObj){
-  console.log('inside the DB function')
   return knex('designInfo').insert(designObj)
 }
 
-//Get Designs by the year in the db. Where year === to the year that was sent in the get request by the user.
+function deleteDesignById(id) {
+  return knex('designInfo').where('id', id).del()
+}
 
-// function addDesigns(designInfo -- the stuff that comes back from the apis){
-//   return knex('designs').insert(designInfo)
-// }
 module.exports = {
   getDesigns: getDesigns,
   getDesignsByYear: getDesignsByYear,
   getDesignsByUrl: getDesignsByUrl,
-  addNewDesign: addNewDesign
+  addNewDesign: addNewDesign,
+  deleteDesignById: deleteDesignById
 }
