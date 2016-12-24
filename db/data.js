@@ -15,7 +15,8 @@ function getDesignsByUrl(url) {
 }
 
 function addNewDesign(designObj){
-  return knex('designInfo').returning('id').insert(designObj)
+  console.log('inside the DB function')
+  return knex('designInfo').insert(designObj)
 }
 
 //Get Designs by the year in the db. Where year === to the year that was sent in the get request by the user.
