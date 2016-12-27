@@ -21,20 +21,11 @@ router.get('/', (req, res) => {
 
 //Gets designs by year
 router.get('/:year', (req, res) => {
+  console.log(req.params.year)
   designDB.getDesignsByYear(req.params.year)
-  .then(year => res.json({designs}))
+  .then(designs => res.json({designs}))
   .catch(err => res.status(500)
     .json(errorMessage('could not retrieve designs by year'))
-  )
-})
-
-//Get designs by website name
-router.get('/url/:url', (req, res) => {
-  var url = String(req.params.url).replace(/^(https?:\/\/)?(www\.)?/,'')
-  designDB.getDesignsByUrl(url)
-  .then(url => res.json({url}))
-  .catch(err => res.status(500)
-    .json(errorMessage('could not retrieve designs by url'))
   )
 })
 
