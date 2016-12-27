@@ -8,7 +8,7 @@ const {errorMessage, successMessage} = require('../db/responses')
 
 
 const timestamps = [19990615, 20000615, 20010615, 20020615, 20030615, 20040615, 20050615, 20060615, 20070615, 20080615, 20090615, 20100615, 20110615, 20120615, 20130615, 20140615, 20150615, 20160615]
-const practiceStamps = [20100615, 20110615, 20120615,]
+const practiceStamps = [20090615]
 
 //Gets all the designs
 router.get('/', (req, res) => {
@@ -48,7 +48,7 @@ router.post('/', (req, res) => {
     if (designs.length !== 0){
       res.json({designs})
     } else {
-      prepUrls(url, timestamps, waybackAPI)
+      prepUrls(url, practiceStamps, waybackAPI)
       function prepUrls (url, timestamps, waybackAPI) {
         console.log('prepUrls');
         var generatedUrls = []
@@ -97,12 +97,13 @@ router.post('/', (req, res) => {
           for (var i = 0; i <= waybackUrls.length - 1; i++) {
             (function (i) {
               setTimeout(function() {
-                const urlbox = Urlbox('642b166f-e587-42db-a7a5-8bcce7133c22', '0d770e56-8f2f-4fd7-8f34-5e03bb33a961');
+                const urlbox = Urlbox(process.env.SCREENSHOT_KEY, process.env.SCREENSHOT_SECRET);
                 const options = {
                   url: waybackUrls[i],
                   thumb_width: 600,
                   format: 'jpg',
-                  quality: 80
+                  quality: 80,
+                  hide_selector: 'div#wm-ipp-inside'
                 };
                 const imgUrl = urlbox.buildUrl(options);
                 console.log(imgUrl)
