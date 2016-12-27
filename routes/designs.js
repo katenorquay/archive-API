@@ -2,12 +2,13 @@ var express = require('express');
 var router = express.Router();
 var designDB = require('../db/data')
 var unirest = require('unirest')
+var Urlbox = require('urlbox')
 const {prepUrls, waybackAPI, makeDbObject} = require('../apiCalls')
 const {errorMessage, successMessage} = require('../db/responses')
 
 
 const timestamps = [19980615, 19990615, 20000615, 20010615, 20020615, 20030615, 20040615, 20050615, 20060615, 20070615, 20080615, 20090615, 20100615, 20110615, 20120615, 20130615, 20140615, 20150615, 20160615]
-const practiceStamps = [20100615]
+const practiceStamps = [20100615, 20110615, 20120615,]
 
 //Gets all the designs
 router.get('/', (req, res) => {
@@ -56,7 +57,7 @@ router.post('/', (req, res) => {
     if (designs.length !== 0){
       res.json({designs})
     } else {
-      prepUrls(url, timestamps, waybackAPI)
+      prepUrls(url, practiceStamps, waybackAPI)
       function prepUrls (url, timestamps, waybackAPI) {
         console.log('prepUrls');
         var generatedUrls = []
@@ -99,29 +100,29 @@ router.post('/', (req, res) => {
 
       function screenshotAPI(url, waybackUrls, waybackTimeStamps, sliceYears) {
         console.log('screenshotAPI')
-          var screenshotUrls = []
-          slowDownLoop()
-          function slowDownLoop() {
-            for (var i = 0; i <= waybackUrls.length - 1; i++) {
-              (function (i) {
-                setTimeout(function() {
-                  unirest.get("https://browshot.p.mashape.com/screenshot/create?key=" + process.env.SCREENSHOT_KEY + "&size=screen&url=" + waybackUrls[i])
-                  .header("X-Mashape-Key", process.env.MASHAPE_KEY)
-                  .header("Accept", "application/json")
-                  .end(function (result) {
-                    console.log(result.body)
-                    var screenshot_url = result.body.screenshot_url
-                    screenshotUrls.push(screenshot_url)
-                    if (screenshotUrls.length === waybackUrls.length) {
-                     sliceYears(url, waybackTimeStamps, screenshotUrls, makeDbObject)
-                    }
-                  })
-                }, i * 10000)
-              }(i))
-            }
-
+        var screenshotUrls = []
+        slowDownLoop()
+        function slowDownLoop() {
+          for (var i = 0; i <= waybackUrls.length - 1; i++) {
+            (function (i) {
+              setTimeout(function() {
+                const urlbox = Urlbox('642b166f-e587-42db-a7a5-8bcce7133c22', '0d770e56-8f2f-4fd7-8f34-5e03bb33a961');
+                const options = {
+                  url: waybackUrls[i],
+                  thumb_width: 600,
+                  format: 'jpg',
+                  quality: 80
+                };
+                const imgUrl = urlbox.buildUrl(options);
+                screenshotUrls.push(imgUrl)
+                if (screenshotUrls.length === waybackUrls.length) {
+                  sliceYears(url, waybackTimeStamps, screenshotUrls, makeDbObject)
+                }
+              }, i * 10000)
+            }(i))
           }
         }
+      }
 
       function sliceYears(url, waybackTimeStamps, screenshotUrls, makeDbObject) {
         console.log('sliceYears')
@@ -145,16 +146,16 @@ router.post('/', (req, res) => {
           }
           designObjects.push(designObj)
         }
-        intoDB(designObjects)
+          intoDB(designObjects)
       }
 
       function intoDB(designObjects) {
         console.log('yahoo!', designObjects)
         for(var i = 0; i < designObjects.length; i++) {
           designDB.addNewDesign(designObjects[i])
-          .then(design => {
-            res.json({design})
-          })
+          .then(design => res.stauts(200)
+            .json(successMessage('added urls to database'))
+          )
           .catch(err => res.status(500)
             .json(errorMessage('could not add url to database'))
             )
@@ -163,7 +164,5 @@ router.post('/', (req, res) => {
       }
     })
 })
-
-
 
 module.exports = router;
