@@ -7,7 +7,7 @@ const {prepUrls, waybackAPI, makeDbObject} = require('../apiCalls')
 const {errorMessage, successMessage} = require('../db/responses')
 
 
-const timestamps = [19980615, 19990615, 20000615, 20010615, 20020615, 20030615, 20040615, 20050615, 20060615, 20070615, 20080615, 20090615, 20100615, 20110615, 20120615, 20130615, 20140615, 20150615, 20160615]
+const timestamps = [19990615, 20000615, 20010615, 20020615, 20030615, 20040615, 20050615, 20060615, 20070615, 20080615, 20090615, 20100615, 20110615, 20120615, 20130615, 20140615, 20150615, 20160615]
 const practiceStamps = [20100615, 20110615, 20120615,]
 
 //Gets all the designs
@@ -57,7 +57,7 @@ router.post('/', (req, res) => {
     if (designs.length !== 0){
       res.json({designs})
     } else {
-      prepUrls(url, practiceStamps, waybackAPI)
+      prepUrls(url, timestamps, waybackAPI)
       function prepUrls (url, timestamps, waybackAPI) {
         console.log('prepUrls');
         var generatedUrls = []
@@ -114,6 +114,7 @@ router.post('/', (req, res) => {
                   quality: 80
                 };
                 const imgUrl = urlbox.buildUrl(options);
+                console.log(imgUrl)
                 screenshotUrls.push(imgUrl)
                 if (screenshotUrls.length === waybackUrls.length) {
                   sliceYears(url, waybackTimeStamps, screenshotUrls, makeDbObject)
@@ -153,7 +154,7 @@ router.post('/', (req, res) => {
         console.log('yahoo!', designObjects)
         for(var i = 0; i < designObjects.length; i++) {
           designDB.addNewDesign(designObjects[i])
-          .then(design => res.stauts(200)
+          .then(design => res.status(200)
             .json(successMessage('added urls to database'))
           )
           .catch(err => res.status(500)
