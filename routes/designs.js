@@ -3,7 +3,6 @@ var router = express.Router();
 var designDB = require('../db/data')
 var unirest = require('unirest')
 var Urlbox = require('urlbox')
-const {prepUrls, waybackAPI, makeDbObject} = require('../apiCalls')
 const {errorMessage, successMessage} = require('../db/responses')
 
 
