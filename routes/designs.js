@@ -8,7 +8,7 @@ const {errorMessage, successMessage} = require('../db/responses')
 
 
 const timestamps = [19990615, 20000615, 20010615, 20020615, 20030615, 20040615, 20050615, 20060615, 20070615, 20080615, 20090615, 20100615, 20110615, 20120615, 20130615, 20140615, 20150615, 20160615]
-const practiceStamps = [20090615]
+const practiceStamps = [20070615]
 
 //Gets all the designs
 router.get('/', (req, res) => {
@@ -109,7 +109,7 @@ router.post('/', (req, res) => {
                 console.log(imgUrl)
                 screenshotUrls.push(imgUrl)
                 if (screenshotUrls.length === waybackUrls.length) {
-                  sliceYears(url, waybackTimeStamps, screenshotUrls, makeDbObject)
+                  sliceYears(url, waybackUrls, waybackTimeStamps, screenshotUrls, makeDbObject)
                 }
               }, i * 10000)
             }(i))
@@ -117,23 +117,24 @@ router.post('/', (req, res) => {
         }
       }
 
-      function sliceYears(url, waybackTimeStamps, screenshotUrls, makeDbObject) {
+      function sliceYears(url, waybackUrls, waybackTimeStamps, screenshotUrls, makeDbObject) {
         console.log('sliceYears')
         var years = []
         waybackTimeStamps.map(function (stamp) {
           years.push(stamp.slice(0, 4))
         })
-        makeDbObject(url, waybackTimeStamps, screenshotUrls, years)
+        makeDbObject(url, waybackUrls, waybackTimeStamps, screenshotUrls, years)
       }
 
 
-      function makeDbObject(url, waybackTimeStamps, screenshotUrls, years) {
+      function makeDbObject(url, waybackUrls, waybackTimeStamps, screenshotUrls, years) {
         var designObjects = []
         console.log('dbObject')
         for (var i = 0; i < years.length; i++) {
           var designObj = {
             "image_url": screenshotUrls[i],
             "page_url": url,
+            "wayback_url": waybackUrls[i],
             "year": years[i],
             "timestamp": waybackTimeStamps[i]
           }
