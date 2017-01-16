@@ -53,6 +53,7 @@ router.post('/', (req, res) => {
         timestamps.map(function (stamp) {
         generatedUrls.push('http://archive.org/wayback/available?url=' + url + '&timestamp=' + stamp)
         })
+        console.log(generatedUrls)
          waybackAPI(url, generatedUrls, practiceStamps, screenshotAPI)
       }
 
@@ -76,7 +77,8 @@ router.post('/', (req, res) => {
                       waybackUrls.push(saveUrl)
                       waybackTimeStamps.push(saveTimeStamp)
                       if (waybackUrls.length === generatedUrls.length) {
-                      screenshotAPI(url, waybackUrls, waybackTimeStamps, sliceYears)
+                        console.log(waybackUrls)
+                      removeDuplicates(url, waybackUrls, waybackTimeStamps, sliceYears)
                     }
                   })
               }, i * 3000)
@@ -85,16 +87,26 @@ router.post('/', (req, res) => {
         }
       }
 
-      function screenshotAPI(url, waybackUrls, waybackTimeStamps, sliceYears) {
+      function removeDuplicates(url, waybackUrls, waybackTimeStamps, sliceYears) {
+        var unduplicatedUrls = waybackUrls.filter(function (item, position) {
+            return waybackUrls.indexOf(item) == position;
+          })
+          console.log(unduplicatedUrls)
+        screenshotAPI(url, unduplicatedUrls, waybackTimeStamps, sliceYears)
+      }
+
+
+
+      function screenshotAPI(url, unduplicatedUrls, waybackTimeStamps, sliceYears) {
         var screenshotUrls = []
         slowDownLoop()
         function slowDownLoop() {
-          for (var i = 0; i <= waybackUrls.length - 1; i++) {
+          for (var i = 0; i <= unduplicatedUrls.length - 1; i++) {
             (function (i) {
               setTimeout(function() {
                 const urlbox = Urlbox(process.env.SCREENSHOT_KEY, process.env.SCREENSHOT_SECRET);
                 const options = {
-                  url: waybackUrls[i],
+                  url: unduplicatedUrls[i],
                   thumb_width: 600,
                   format: 'jpg',
                   quality: 80,
@@ -102,8 +114,9 @@ router.post('/', (req, res) => {
                 };
                 const imgUrl = urlbox.buildUrl(options);
                 screenshotUrls.push(imgUrl)
-                if (screenshotUrls.length === waybackUrls.length) {
-                  sliceYears(url, waybackUrls, waybackTimeStamps, screenshotUrls, makeDbObject)
+                console.log(screenshotUrls)
+                if (screenshotUrls.length === unduplicatedUrls.length) {
+                  sliceYears(url, unduplicatedUrls, waybackTimeStamps, screenshotUrls, makeDbObject)
                 }
               }, i * 7000)
             }(i))
@@ -111,22 +124,22 @@ router.post('/', (req, res) => {
         }
       }
 
-      function sliceYears(url, waybackUrls, waybackTimeStamps, screenshotUrls, makeDbObject) {
+      function sliceYears(url, unduplicatedUrls, waybackTimeStamps, screenshotUrls, makeDbObject) {
         var years = []
         waybackTimeStamps.map(function (stamp) {
           years.push(stamp.slice(0, 4))
         })
-        makeDbObject(url, waybackUrls, waybackTimeStamps, screenshotUrls, years)
+        makeDbObject(url, unduplicatedUrls, waybackTimeStamps, screenshotUrls, years)
       }
 
 
-      function makeDbObject(url, waybackUrls, waybackTimeStamps, screenshotUrls, years) {
+      function makeDbObject(url, unduplicatedUrls, waybackTimeStamps, screenshotUrls, years) {
         var designObjects = []
         for (var i = 0; i < years.length; i++) {
           var designObj = {
             "image_url": screenshotUrls[i],
             "page_url": url,
-            "wayback_url": waybackUrls[i],
+            "wayback_url": unduplicatedUrls[i],
             "year": years[i],
             "timestamp": waybackTimeStamps[i]
           }
@@ -136,7 +149,7 @@ router.post('/', (req, res) => {
       }
 
       function intoDB(url, designObjects) {
-          designDB.addNewDesign(designObjects)
+          designDB.addNewDesign(designObjects.splice(0, 18))
             .then(designs => designDB.getDesignsByUrl(url))
             .then(designs => res.json({designs}))
             .catch(err => res.status(500)
