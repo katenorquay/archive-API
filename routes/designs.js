@@ -47,7 +47,7 @@ router.post('/', (req, res) => {
     if (designs.length !== 0){
       res.json({designs})
     } else {
-      prepUrls(url, practiceStamps, waybackAPI)
+      prepUrls(url, timestamps, waybackAPI)
       function prepUrls (url, timestamps, waybackAPI) {
         var generatedUrls = []
         timestamps.map(function (stamp) {
@@ -79,7 +79,7 @@ router.post('/', (req, res) => {
                       screenshotAPI(url, waybackUrls, waybackTimeStamps, sliceYears)
                     }
                   })
-              }, i * 7000)
+              }, i * 3000)
             }(i))
           }
         }
@@ -105,7 +105,7 @@ router.post('/', (req, res) => {
                 if (screenshotUrls.length === waybackUrls.length) {
                   sliceYears(url, waybackUrls, waybackTimeStamps, screenshotUrls, makeDbObject)
                 }
-              }, i * 10000)
+              }, i * 7000)
             }(i))
           }
         }
