@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node test/*.js",
+    "test": "node test/*.js | tap-spec",
     "start": "nodemon ./bin/www"
   },
   "repository": {
@@ -28,6 +28,7 @@
     "knex": "^0.12.6",
     "morgan": "^1.7.0",
     "pg": "^6.1.0",
+    "tap-spec": "^4.1.1",
     "tape": "^4.6.2",
     "unirest": "^0.5.1",
     "urlbox": "^1.2.1"

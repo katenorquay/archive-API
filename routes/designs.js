@@ -49,7 +49,6 @@ router.post('/', (req, res) => {
     } else {
       prepUrls(url, practiceStamps, waybackAPI)
       function prepUrls (url, timestamps, waybackAPI) {
-        console.log('prepUrls');
         var generatedUrls = []
         timestamps.map(function (stamp) {
         generatedUrls.push('http://archive.org/wayback/available?url=' + url + '&timestamp=' + stamp)
@@ -58,7 +57,6 @@ router.post('/', (req, res) => {
       }
 
       function waybackAPI(url, generatedUrls, practiceStamps, screenshotAPI) {
-        console.log('waybackAPI');
         waybackUrls = []
         waybackTimeStamps = []
         slowDownLoop()
@@ -72,7 +70,6 @@ router.post('/', (req, res) => {
                   .header("Accept", "application/json")
                   .end(function (result, error) {
                     if (error) console.log(error)
-                    console.log(result.body)
                     var obj = JSON.parse(result.body)
                     var saveUrl = obj.archived_snapshots.closest.url
                     var saveTimeStamp = obj.archived_snapshots.closest.timestamp
@@ -89,7 +86,6 @@ router.post('/', (req, res) => {
       }
 
       function screenshotAPI(url, waybackUrls, waybackTimeStamps, sliceYears) {
-        console.log('screenshotAPI')
         var screenshotUrls = []
         slowDownLoop()
         function slowDownLoop() {
@@ -105,7 +101,6 @@ router.post('/', (req, res) => {
                   hide_selector: 'div#wm-ipp-inside'
                 };
                 const imgUrl = urlbox.buildUrl(options);
-                console.log(imgUrl)
                 screenshotUrls.push(imgUrl)
                 if (screenshotUrls.length === waybackUrls.length) {
                   sliceYears(url, waybackUrls, waybackTimeStamps, screenshotUrls, makeDbObject)
@@ -117,7 +112,6 @@ router.post('/', (req, res) => {
       }
 
       function sliceYears(url, waybackUrls, waybackTimeStamps, screenshotUrls, makeDbObject) {
-        console.log('sliceYears')
         var years = []
         waybackTimeStamps.map(function (stamp) {
           years.push(stamp.slice(0, 4))
@@ -128,7 +122,6 @@ router.post('/', (req, res) => {
 
       function makeDbObject(url, waybackUrls, waybackTimeStamps, screenshotUrls, years) {
         var designObjects = []
-        console.log('dbObject')
         for (var i = 0; i < years.length; i++) {
           var designObj = {
             "image_url": screenshotUrls[i],
@@ -143,7 +136,6 @@ router.post('/', (req, res) => {
       }
 
       function intoDB(url, designObjects) {
-        console.log('yahoo!', designObjects)
           designDB.addNewDesign(designObjects)
             .then(designs => designDB.getDesignsByUrl(url))
             .then(designs => res.json({designs}))

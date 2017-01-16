@@ -18,8 +18,6 @@ function addNewDesign(designObjects){
   return knex.insert(designObjects).into('designInfo')
 }
 
-// knex.insert([{title: 'Great Gatsby'}, {title: 'Fahrenheit 451'}], 'id').into('books')
-
 function deleteDesignById(id) {
   return knex('designInfo').where('id', id).del()
 }
