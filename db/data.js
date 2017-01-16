@@ -15,10 +15,10 @@ function getDesignsByUrl(url) {
 }
 
 function addNewDesign(designObjects){
-  for(var i = 0; i < designObjects.length; i++) {
-    return knex('designInfo').insert(designObjects[i])
-  }
+  return knex.insert(designObjects).into('designInfo')
 }
+
+// knex.insert([{title: 'Great Gatsby'}, {title: 'Fahrenheit 451'}], 'id').into('books')
 
 function deleteDesignById(id) {
   return knex('designInfo').where('id', id).del()

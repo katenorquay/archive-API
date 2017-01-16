@@ -139,17 +139,16 @@ router.post('/', (req, res) => {
           }
           designObjects.push(designObj)
         }
-          intoDB(designObjects)
+          intoDB(url, designObjects)
       }
 
-      function intoDB(designObjects) {
+      function intoDB(url, designObjects) {
         console.log('yahoo!', designObjects)
           designDB.addNewDesign(designObjects)
-          .then(design => res.status(200)
-            .json(successMessage('added urls to database'))
-          )
-          .catch(err => res.status(500)
-            .json(errorMessage('could not add url to database'))
+            .then(designs => designDB.getDesignsByUrl(url))
+            .then(designs => res.json({designs}))
+            .catch(err => res.status(500)
+              .json(errorMessage('could not add url to database'))
             )
         }
       }
