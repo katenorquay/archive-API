@@ -14,8 +14,10 @@ function getDesignsByUrl(url) {
   return knex('designInfo').where('page_url', url)
 }
 
-function addNewDesign(designObj){
-  return knex('designInfo').insert(designObj)
+function addNewDesign(designObjects){
+  for(var i = 0; i < designObjects.length; i++) {
+    return knex('designInfo').insert(designObjects[i])
+  }
 }
 
 function deleteDesignById(id) {

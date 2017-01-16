@@ -7,7 +7,7 @@ const {errorMessage, successMessage} = require('../db/responses')
 
 
 const timestamps = [19990615, 20000615, 20010615, 20020615, 20030615, 20040615, 20050615, 20060615, 20070615, 20080615, 20090615, 20100615, 20110615, 20120615, 20130615, 20140615, 20150615, 20160615]
-const practiceStamps = [20070615]
+const practiceStamps = [20070615, 20080615]
 
 //Gets all the designs
 router.get('/', (req, res) => {
@@ -144,15 +144,13 @@ router.post('/', (req, res) => {
 
       function intoDB(designObjects) {
         console.log('yahoo!', designObjects)
-        for(var i = 0; i < designObjects.length; i++) {
-          designDB.addNewDesign(designObjects[i])
+          designDB.addNewDesign(designObjects)
           .then(design => res.status(200)
             .json(successMessage('added urls to database'))
           )
           .catch(err => res.status(500)
             .json(errorMessage('could not add url to database'))
             )
-          }
         }
       }
     })
