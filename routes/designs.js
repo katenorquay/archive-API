@@ -47,7 +47,8 @@ router.post('/', (req, res) => {
     if (designs.length !== 0){
       res.json({designs})
     } else {
-      prepUrls(url, timestamps, waybackAPI)
+      prepUrls(url, practiceStamps, waybackAPI)
+
       function prepUrls (url, timestamps, waybackAPI) {
         var generatedUrls = []
         timestamps.map(function (stamp) {
@@ -78,6 +79,7 @@ router.post('/', (req, res) => {
                       waybackTimeStamps.push(saveTimeStamp)
                       if (waybackUrls.length === generatedUrls.length) {
                         console.log(waybackUrls)
+                        return waybackUrls
                       removeDuplicates(url, waybackUrls, waybackTimeStamps, sliceYears)
                     }
                   })
@@ -149,7 +151,8 @@ router.post('/', (req, res) => {
       }
 
       function intoDB(url, designObjects) {
-          designDB.addNewDesign(designObjects.splice(0, 18))
+        designObjects = designObjects.splice(0, 18)
+          designDB.addNewDesign(designObjects)
             .then(designs => designDB.getDesignsByUrl(url))
             .then(designs => res.json({designs}))
             .catch(err => res.status(500)
@@ -161,3 +164,15 @@ router.post('/', (req, res) => {
 })
 
 module.exports = router;
+
+
+// function callback() {
+//   var generatedUrls = prepUrls(url, timestamps) {
+//     waybackAPI(url, generatedUrls, practiceStamps, screenshotAPI) {
+//       if (waybackUrls.length === generatedUrls.length) {
+//         removeDuplicates(url, waybackUrls, waybackTimeStamps, sliceYears)
+//     }
+//
+//     }
+//   }
+// }
