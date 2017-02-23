@@ -48,15 +48,26 @@ router.post('/', (req, res) => {
       res.json({designs})
     } else {
       var generatedUrls = prepUrls(url, practiceStamps)
-      waybackAPI(url, generatedUrls, function(arr) {
-        var unduplicatedUrls = removeDuplicates(arr)
-        var years = sliceYears(waybackTimeStamps)
-        screenshotAPI(arr, function(arr2) {
-
+      console.log(generatedUrls)
+      waybackAPI(url, generatedUrls, function(times, links) {
+        var unduplicatedUrls = removeDuplicates(links)
+        var years = sliceYears(times)
+        screenshotAPI(unduplicatedUrls, function(screenshotLinks) {
+          var designObjs = makeDbObject(url, unduplicatedUrls, times, screenshotLinks, years)
+          designObjects = designObjs.splice(0, 18)
+          designDB.addNewDesign(designObjects)
+            .then(designs => designDB.getDesignsByUrl(url))
+            .then(designs => res.json({designs}))
+            .catch(err => res.status(500)
+              .json(errorMessage('could not add url to database'))
+            )
         })
-      }  )
+      })
+    }
+  })
+})
 
-      function prepUrls (url, timestamps, waybackAPI) {
+      function prepUrls (url, timestamps) {
         var generatedUrls = []
         timestamps.map(function (stamp) {
         generatedUrls.push('http://archive.org/wayback/available?url=' + url + '&timestamp=' + stamp)
@@ -85,8 +96,7 @@ router.post('/', (req, res) => {
                       waybackTimeStamps.push(saveTimeStamp)
                       if (waybackUrls.length === generatedUrls.length) {
                         console.log(waybackUrls)
-                        callback(waybackUrls)
-                        removeDuplicates(waybackUrls, callback)
+                        callback(waybackTimeStamps, waybackUrls)
                     }
                   })
               }, i * 3000)
@@ -95,12 +105,11 @@ router.post('/', (req, res) => {
         }
       }
 
-      function removeDuplicates(waybackUrls, callback) {
+      function removeDuplicates(waybackUrls) {
         var unduplicatedUrls = waybackUrls.filter(function (item, position) {
             return waybackUrls.indexOf(item) == position;
           })
-          console.log(unduplicatedUrls)
-          callback(unduplicatedUrls)
+          return unduplicatedUrls
       }
 
 
@@ -124,7 +133,7 @@ router.post('/', (req, res) => {
                 screenshotUrls.push(imgUrl)
                 console.log(screenshotUrls)
                 if (screenshotUrls.length === unduplicatedUrls.length) {
-                  sliceYears(url, unduplicatedUrls, waybackTimeStamps, screenshotUrls, makeDbObject)
+                  callback(screenshotUrls)
                 }
               }, i * 7000)
             }(i))
@@ -132,12 +141,12 @@ router.post('/', (req, res) => {
         }
       }
 
-      function sliceYears(url, unduplicatedUrls, waybackTimeStamps, screenshotUrls, makeDbObject) {
+      function sliceYears(waybackTimeStamps) {
         var years = []
         waybackTimeStamps.map(function (stamp) {
           years.push(stamp.slice(0, 4))
         })
-        makeDbObject(url, unduplicatedUrls, waybackTimeStamps, screenshotUrls, years)
+        return years
       }
 
 
@@ -153,32 +162,7 @@ router.post('/', (req, res) => {
           }
           designObjects.push(designObj)
         }
-          intoDB(url, designObjects)
+          return designObjects
       }
-
-      function intoDB(url, designObjects) {
-        designObjects = designObjects.splice(0, 18)
-          designDB.addNewDesign(designObjects)
-            .then(designs => designDB.getDesignsByUrl(url))
-            .then(designs => res.json({designs}))
-            .catch(err => res.status(500)
-              .json(errorMessage('could not add url to database'))
-            )
-        }
-      }
-    })
-})
 
 module.exports = router;
-
-
-// function callback() {
-//   var generatedUrls = prepUrls(url, timestamps) {
-//     waybackAPI(url, generatedUrls, practiceStamps, screenshotAPI) {
-//       if (waybackUrls.length === generatedUrls.length) {
-//         removeDuplicates(url, waybackUrls, waybackTimeStamps, sliceYears)
-//     }
-//
-//     }
-//   }
-// }
