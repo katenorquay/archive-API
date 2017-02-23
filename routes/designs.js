@@ -47,18 +47,24 @@ router.post('/', (req, res) => {
     if (designs.length !== 0){
       res.json({designs})
     } else {
-      prepUrls(url, practiceStamps, waybackAPI)
+      var generatedUrls = prepUrls(url, practiceStamps)
+      waybackAPI(url, generatedUrls, function(arr) {
+        var unduplicatedUrls = removeDuplicates(arr)
+        var years = sliceYears(waybackTimeStamps)
+        screenshotAPI(arr, function(arr2) {
+
+        })
+      }  )
 
       function prepUrls (url, timestamps, waybackAPI) {
         var generatedUrls = []
         timestamps.map(function (stamp) {
         generatedUrls.push('http://archive.org/wayback/available?url=' + url + '&timestamp=' + stamp)
         })
-        console.log(generatedUrls)
-         waybackAPI(url, generatedUrls, practiceStamps, screenshotAPI)
+        return generatedUrls
       }
 
-      function waybackAPI(url, generatedUrls, practiceStamps, screenshotAPI) {
+      function waybackAPI(url, generatedUrls, callback) {
         waybackUrls = []
         waybackTimeStamps = []
         slowDownLoop()
@@ -79,8 +85,8 @@ router.post('/', (req, res) => {
                       waybackTimeStamps.push(saveTimeStamp)
                       if (waybackUrls.length === generatedUrls.length) {
                         console.log(waybackUrls)
-                        return waybackUrls
-                      removeDuplicates(url, waybackUrls, waybackTimeStamps, sliceYears)
+                        callback(waybackUrls)
+                        removeDuplicates(waybackUrls, callback)
                     }
                   })
               }, i * 3000)
@@ -89,17 +95,17 @@ router.post('/', (req, res) => {
         }
       }
 
-      function removeDuplicates(url, waybackUrls, waybackTimeStamps, sliceYears) {
+      function removeDuplicates(waybackUrls, callback) {
         var unduplicatedUrls = waybackUrls.filter(function (item, position) {
             return waybackUrls.indexOf(item) == position;
           })
           console.log(unduplicatedUrls)
-        screenshotAPI(url, unduplicatedUrls, waybackTimeStamps, sliceYears)
+          callback(unduplicatedUrls)
       }
 
 
 
-      function screenshotAPI(url, unduplicatedUrls, waybackTimeStamps, sliceYears) {
+      function screenshotAPI(unduplicatedUrls, callback) {
         var screenshotUrls = []
         slowDownLoop()
         function slowDownLoop() {
