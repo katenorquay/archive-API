@@ -13,4 +13,4 @@ function makeDbObject(url, unduplicatedUrls, waybackTimeStamps, screenshotUrls, 
     return designObjects
 }
 
-module.exports = makeDbObject]
+module.exports = makeDbObject

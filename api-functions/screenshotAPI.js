@@ -17,8 +17,8 @@ function screenshotAPI(unduplicatedUrls, callback) {
           };
           const imgUrl = urlbox.buildUrl(options);
           screenshotUrls.push(imgUrl)
-          console.log(screenshotUrls)
           if (screenshotUrls.length === unduplicatedUrls.length) {
+            console.log(screenshotUrls)
             callback(screenshotUrls)
           }
         }, i * 7000)

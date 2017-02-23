@@ -1,6 +1,6 @@
 var unirest = require('unirest')
 
-unction waybackAPI(url, generatedUrls, callback) {
+function waybackAPI(url, generatedUrls, callback) {
   waybackUrls = []
   waybackTimeStamps = []
   slowDownLoop()

@@ -6,8 +6,10 @@ var prepUrls = require('../api-functions/prepUrls')
 var waybackAPI = require('../api-functions/waybackAPI')
 var removeDuplicates = require('../api-functions/removeDuplicates')
 var screenshotAPI = require('../api-functions/screenshotAPI')
-var sliceYears = require('../api-functions/screenshotAPI')
-var makeDbObject = require('../api-functions/screenshotAPI')
+var sliceYears = require('../api-functions/sliceYears')
+var makeDbObject = require('../api-functions/makeDbObject')
+var Urlbox = require('urlbox')
+var unirest = require('unirest')
 
 
 const timestamps = [19990615, 20000615, 20010615, 20020615, 20030615, 20040615, 20050615, 20060615, 20070615, 20080615, 20090615, 20100615, 20110615, 20120615, 20130615, 20140615, 20150615, 20160615]
@@ -64,10 +66,11 @@ router.post('/', (req, res) => {
             .catch(err => res.status(500)
               .json(errorMessage('could not add url to database'))
             )
-        })
+          })
       })
     }
   })
 })
+
 
 module.exports = router;
