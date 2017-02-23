@@ -1,3 +1,5 @@
+var Urlbox = require('urlbox')
+
 function screenshotAPI(unduplicatedUrls, callback) {
   var screenshotUrls = []
   slowDownLoop()

@@ -1,8 +1,6 @@
 var express = require('express');
 var router = express.Router();
 var designDB = require('../db/data')
-var unirest = require('unirest')
-var Urlbox = require('urlbox')
 const {errorMessage, successMessage} = require('../db/responses')
 var prepUrls = require('../api-functions/prepUrls')
 var waybackAPI = require('../api-functions/waybackAPI')
@@ -54,13 +52,12 @@ router.post('/', (req, res) => {
       res.json({designs})
     } else {
       var generatedUrls = prepUrls(url, practiceStamps)
-      console.log(generatedUrls)
-      waybackAPI(url, generatedUrls, function(times, links) {
-        var unduplicatedUrls = removeDuplicates(links)
-        var years = sliceYears(times)
-        screenshotAPI(unduplicatedUrls, function(screenshotLinks) {
-          var designObjs = makeDbObject(url, unduplicatedUrls, times, screenshotLinks, years)
-          designObjects = designObjs.splice(0, 18)
+      waybackAPI(url, generatedUrls, function(waybackTimeStamps, waybackUrls) {
+        var unduplicatedUrls = removeDuplicates(waybackUrls)
+        var years = sliceYears(waybackTimeStamps)
+        screenshotAPI(unduplicatedUrls, function(screenshotUrls) {
+          var designObjects = makeDbObject(url, unduplicatedUrls, waybackTimeStamps, screenshotUrls, years)
+          designObjects = designObjects.splice(0, 18)
           designDB.addNewDesign(designObjects)
             .then(designs => designDB.getDesignsByUrl(url))
             .then(designs => res.json({designs}))
