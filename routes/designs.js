@@ -4,6 +4,12 @@ var designDB = require('../db/data')
 var unirest = require('unirest')
 var Urlbox = require('urlbox')
 const {errorMessage, successMessage} = require('../db/responses')
+var prepUrls = require('../api-functions/prepUrls')
+var waybackAPI = require('../api-functions/waybackAPI')
+var removeDuplicates = require('../api-functions/removeDuplicates')
+var screenshotAPI = require('../api-functions/screenshotAPI')
+var sliceYears = require('../api-functions/screenshotAPI')
+var makeDbObject = require('../api-functions/screenshotAPI')
 
 
 const timestamps = [19990615, 20000615, 20010615, 20020615, 20030615, 20040615, 20050615, 20060615, 20070615, 20080615, 20090615, 20100615, 20110615, 20120615, 20130615, 20140615, 20150615, 20160615]
@@ -66,103 +72,5 @@ router.post('/', (req, res) => {
     }
   })
 })
-
-      function prepUrls (url, timestamps) {
-        var generatedUrls = []
-        timestamps.map(function (stamp) {
-        generatedUrls.push('http://archive.org/wayback/available?url=' + url + '&timestamp=' + stamp)
-        })
-        return generatedUrls
-      }
-
-      function waybackAPI(url, generatedUrls, callback) {
-        waybackUrls = []
-        waybackTimeStamps = []
-        slowDownLoop()
-        function slowDownLoop() {
-          for (var i = 0; i < generatedUrls.length; i++) {
-            (function(i) {
-              setTimeout(function() {
-                unirest.get(generatedUrls[i])
-                  .header("X-Mashape-Key", process.env.MASHAPE_KEY)
-                  .header("Content-Type", "application/json")
-                  .header("Accept", "application/json")
-                  .end(function (result, error) {
-                    if (error) console.log(error)
-                    var obj = JSON.parse(result.body)
-                    var saveUrl = obj.archived_snapshots.closest.url
-                    var saveTimeStamp = obj.archived_snapshots.closest.timestamp
-                      waybackUrls.push(saveUrl)
-                      waybackTimeStamps.push(saveTimeStamp)
-                      if (waybackUrls.length === generatedUrls.length) {
-                        console.log(waybackUrls)
-                        callback(waybackTimeStamps, waybackUrls)
-                    }
-                  })
-              }, i * 3000)
-            }(i))
-          }
-        }
-      }
-
-      function removeDuplicates(waybackUrls) {
-        var unduplicatedUrls = waybackUrls.filter(function (item, position) {
-            return waybackUrls.indexOf(item) == position;
-          })
-          return unduplicatedUrls
-      }
-
-
-
-      function screenshotAPI(unduplicatedUrls, callback) {
-        var screenshotUrls = []
-        slowDownLoop()
-        function slowDownLoop() {
-          for (var i = 0; i <= unduplicatedUrls.length - 1; i++) {
-            (function (i) {
-              setTimeout(function() {
-                const urlbox = Urlbox(process.env.SCREENSHOT_KEY, process.env.SCREENSHOT_SECRET);
-                const options = {
-                  url: unduplicatedUrls[i],
-                  thumb_width: 600,
-                  format: 'jpg',
-                  quality: 80,
-                  hide_selector: 'div#wm-ipp-inside'
-                };
-                const imgUrl = urlbox.buildUrl(options);
-                screenshotUrls.push(imgUrl)
-                console.log(screenshotUrls)
-                if (screenshotUrls.length === unduplicatedUrls.length) {
-                  callback(screenshotUrls)
-                }
-              }, i * 7000)
-            }(i))
-          }
-        }
-      }
-
-      function sliceYears(waybackTimeStamps) {
-        var years = []
-        waybackTimeStamps.map(function (stamp) {
-          years.push(stamp.slice(0, 4))
-        })
-        return years
-      }
-
-
-      function makeDbObject(url, unduplicatedUrls, waybackTimeStamps, screenshotUrls, years) {
-        var designObjects = []
-        for (var i = 0; i < years.length; i++) {
-          var designObj = {
-            "image_url": screenshotUrls[i],
-            "page_url": url,
-            "wayback_url": unduplicatedUrls[i],
-            "year": years[i],
-            "timestamp": waybackTimeStamps[i]
-          }
-          designObjects.push(designObj)
-        }
-          return designObjects
-      }
 
 module.exports = router;
